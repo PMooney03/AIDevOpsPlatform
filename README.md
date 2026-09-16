@@ -121,6 +121,12 @@ Health history for the HTTP-500 target. Container stays **Running** (nginx is up
 
 Records used for time-window correlation. SHAs here are **seed/demo**, not commits from this repo.
 
+### Prometheus
+
+![Prometheus scrape targets](Images/PrometheusTargets.png)
+
+http://localhost:9090/targets. Both scrape jobs **UP**: API `/metrics` and worker `:9464/metrics`. Grafana reads this Prometheus, not the dashboard API.
+
 ### Grafana
 
 ![Grafana platform overview](Images/Grafana.png)
