@@ -12,7 +12,7 @@ The API analyses incidents with Ollama in Compose. The worker never calls the mo
 
 ## Compose (default)
 
-`docker compose up --build` starts `devops-ollama`, waits until it is healthy, then `ollama-init` pulls `${OLLAMA_MODEL:-llama3.1}` (~5 GB the first time). The API does not start until that pull finishes. 8B is the default for a 32 GB workstation; `llama3.2` (3B) still works if you want a smaller download.
+`docker compose up --build` starts `devops-ollama`, waits until it is healthy, then `ollama-init` pulls and warms `${OLLAMA_MODEL:-llama3.2}` (~2 GB). The API does not start until that finishes. Compose uses 3B because Docker Desktop usually exposes CPU only; 8B (`llama3.1`) cold-loads long enough to 504 the dashboard proxy.
 
 Disable the model without removing the rest of the stack:
 
@@ -22,12 +22,12 @@ OLLAMA_ENABLED=false
 
 ## Host Ollama instead of the Compose service
 
-Install Ollama on Windows, `ollama pull llama3.1`, then:
+Install Ollama on Windows, `ollama pull llama3.2`, then:
 
 ```text
 OLLAMA_ENABLED=true
 OLLAMA_BASE_URL=http://host.docker.internal:11434
-OLLAMA_MODEL=llama3.1
+OLLAMA_MODEL=llama3.2
 ```
 
 Do not point Compose at the host until `http://127.0.0.1:11434/api/tags` responds.

@@ -26,8 +26,8 @@ services:
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-devops_platform};Username=${POSTGRES_USER:-devops};Password=${POSTGRES_PASSWORD:-dev_only_change_me}
       Ollama__Enabled: ${OLLAMA_ENABLED:-true}
       Ollama__BaseUrl: ${OLLAMA_BASE_URL:-http://ollama:11434}
-      Ollama__Model: ${OLLAMA_MODEL:-llama3.1}
-      Ollama__Timeout: ${OLLAMA_TIMEOUT:-00:04:00}
+      Ollama__Model: ${OLLAMA_MODEL:-llama3.2}
+      Ollama__Timeout: ${OLLAMA_TIMEOUT:-00:10:00}
       Auth__Enabled: ${AUTH_ENABLED:-true}
       Auth__SigningKey: ${AUTH_SIGNING_KEY:-dev-only-change-me-use-a-32-char-key!}
       Docker__Enabled: "true"
@@ -81,6 +81,8 @@ services:
   ollama:
     image: ollama/ollama:latest
     container_name: devops-ollama
+    environment:
+      OLLAMA_KEEP_ALIVE: 24h
     volumes:
       - ollama_data:/root/.ollama
     ports:
@@ -100,8 +102,8 @@ services:
         condition: service_healthy
     environment:
       OLLAMA_HOST: http://ollama:11434
-      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.1}
-    entrypoint: ["sh", "-c", "ollama pull $$OLLAMA_MODEL"]
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2}
+    entrypoint: ["sh", "-c", "ollama pull \"$$OLLAMA_MODEL\" && echo ok | ollama run \"$$OLLAMA_MODEL\""]
     restart: "no"
 
   demo-unhealthy:

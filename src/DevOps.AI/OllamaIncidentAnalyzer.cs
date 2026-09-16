@@ -50,6 +50,7 @@ public sealed class OllamaIncidentAnalyzer(
             var content = document.RootElement.GetProperty("message").GetProperty("content").GetString();
             if (!IncidentAnalysisValidator.TryParse(content, out var parsed, out var error))
             {
+                logger.LogWarning("Ollama JSON rejected: {Error}. Content: {Content}", error, Truncate(content ?? ""));
                 return Failure(error ?? "Malformed model output.", context);
             }
 
@@ -132,6 +133,7 @@ public sealed class OllamaIncidentAnalyzer(
 
         builder.AppendLine();
         builder.AppendLine("Return JSON with keys: summary, probableCause, severityAssessment, evidence, recommendedChecks, suggestedRemediation, limitations.");
+        builder.AppendLine("evidence, recommendedChecks, suggestedRemediation, and limitations must be JSON arrays of strings, never a single string or an object.");
         return builder.ToString();
     }
 
@@ -144,6 +146,7 @@ public sealed class OllamaIncidentAnalyzer(
         You may recommend diagnostic checks. You cannot execute actions or run commands.
         Historical incidents are examples only, not current evidence.
         A nearby deployment is a potential correlation, not proof of causation.
+        Return a JSON object. evidence, recommendedChecks, suggestedRemediation, and limitations must be arrays of strings.
         """;
 
     private static string Truncate(string value) =>

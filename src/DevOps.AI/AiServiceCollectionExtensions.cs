@@ -17,7 +17,7 @@ public static class AiServiceCollectionExtensions
         }
 
         var timeout = configuration.GetValue<TimeSpan?>($"{OllamaOptions.SectionName}:Timeout")
-            ?? TimeSpan.FromSeconds(45);
+            ?? TimeSpan.FromMinutes(10);
         var baseUrl = configuration.GetValue<string>($"{OllamaOptions.SectionName}:BaseUrl")
             ?? "http://127.0.0.1:11434";
         services.AddHttpClient<IIncidentAnalyzer, OllamaIncidentAnalyzer>(client =>

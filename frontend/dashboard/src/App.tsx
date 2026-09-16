@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Link, Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom";
 import {
   AnalysisResponse,
@@ -299,6 +299,8 @@ function IncidentDetailPage() {
   const [remediations, setRemediations] = useState<RemediationItem[]>([]);
   const [resolution, setResolution] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
+  const analyzingRef = useRef(false);
 
   async function refresh() {
     if (!id) {
@@ -310,6 +312,9 @@ function IncidentDetailPage() {
     setSimilar(await api.similar(id));
     setDeployments(await api.deployments(current.serviceId));
     setRemediations(await api.remediations(id));
+    if (analyzingRef.current) {
+      return;
+    }
     const latest = await api.analysis(id);
     setAnalysis(latest ?? null);
   }
@@ -340,10 +345,27 @@ function IncidentDetailPage() {
         <article>
           <h2>AI analysis</h2>
           <p className="muted">Model output is a hypothesis, not a confirmed fact.</p>
-          {analysis ? (
+          {analyzing ? (
+            <p>Loading llama3.2 and generating JSON. First run can take a minute — leave this page open and click only once.</p>
+          ) : analysis ? (
             <>
               <p><strong>{analysis.succeeded ? "Succeeded" : "Unavailable"}</strong> {analysis.summary}</p>
               <p>Probable cause: {analysis.probableCause}</p>
+              {analysis.failureReason ? <p className="muted">Reason: {analysis.failureReason}</p> : null}
+              {analysis.evidence.length > 0 ? (
+                <ul>
+                  {analysis.evidence.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              ) : null}
+              {analysis.recommendedChecks.length > 0 ? (
+                <ul>
+                  {analysis.recommendedChecks.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              ) : null}
               <ul>
                 {analysis.limitations.map((item) => (
                   <li key={item}>{item}</li>
@@ -354,10 +376,30 @@ function IncidentDetailPage() {
             <p>No analysis stored yet.</p>
           )}
           {canOperate(role) ? (
-            <button type="button" onClick={() => id && api.analyze(id).then(setAnalysis).catch((err) => setError(String(err)))}>
-              Run analysis
+            <button
+              type="button"
+              disabled={analyzing}
+              onClick={() => {
+                if (!id || analyzing) {
+                  return;
+                }
+                setError(null);
+                analyzingRef.current = true;
+                setAnalyzing(true);
+                api
+                  .analyze(id)
+                  .then(setAnalysis)
+                  .catch((err) => setError(String(err)))
+                  .finally(() => {
+                    analyzingRef.current = false;
+                    setAnalyzing(false);
+                  });
+              }}
+            >
+              {analyzing ? "Running…" : "Run analysis"}
             </button>
           ) : null}
+          {error ? <p className="error">{error}</p> : null}
         </article>
       </div>
       <h2>Similar incidents</h2>

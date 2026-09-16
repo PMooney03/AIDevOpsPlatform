@@ -176,7 +176,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     clearSession();
     throw new Error("Authentication required.");
   }
-  if (response.status === 502 || response.status === 503 || response.status === 504) {
+  if (response.status === 504) {
+    throw new Error("Analysis timed out while the model was loading. Wait, then click Run analysis once.");
+  }
+  if (response.status === 502 || response.status === 503) {
     throw new Error("The API is still starting. Wait a few seconds and sign in again.");
   }
   if (!response.ok) {

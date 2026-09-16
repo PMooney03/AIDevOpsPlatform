@@ -6,6 +6,6 @@ public sealed class OllamaOptions
 
     public bool Enabled { get; set; }
     public string BaseUrl { get; set; } = "http://127.0.0.1:11434";
-    public string Model { get; set; } = "llama3.1";
-    public TimeSpan Timeout { get; set; } = TimeSpan.FromMinutes(4);
+    public string Model { get; set; } = "llama3.2";
+    public TimeSpan Timeout { get; set; } = TimeSpan.FromMinutes(10);
 }
