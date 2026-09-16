@@ -12,7 +12,12 @@ The API analyses incidents with Ollama in Compose. The worker never calls the mo
 
 ## Compose (default)
 
-`docker compose up --build` starts `devops-ollama`, waits until it is healthy, then `ollama-init` pulls and warms `${OLLAMA_MODEL:-llama3.2}` (~2 GB). The API does not start until that finishes. Compose uses 3B because Docker Desktop usually exposes CPU only; 8B (`llama3.1`) cold-loads long enough to 504 the dashboard proxy.
+`docker compose up --build` starts `devops-ollama`, waits until it is healthy, then `ollama-init` pulls and warms `${OLLAMA_MODEL:-llama3.2}` (~2 GB). The API does not start until that finishes. Model size vs hardware is in the README **Local LLM** table. Compose defaults to 3B because Docker Desktop on Windows usually runs Ollama on **CPU**.
+
+```text
+OLLAMA_MODEL=llama3.1
+OLLAMA_TIMEOUT=00:10:00
+```
 
 Disable the model without removing the rest of the stack:
 

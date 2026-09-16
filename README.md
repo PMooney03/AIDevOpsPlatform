@@ -65,9 +65,33 @@ Demo logins (local only): `operator` / `LocalOperator-Devops9`, `admin` / `Local
 
 Host API against Compose Postgres: `dotnet run --project src/DevOps.Api` (Development enables JWT; same demo users).
 
-Compose starts **Ollama** and pulls `llama3.2` (3B) on first run. Docker Desktop on Windows typically runs the model on CPU; 3B finishes inside the proxy timeout. `llama3.1` (8B) is optional via `OLLAMA_MODEL` if you warm it first. The worker never calls the model. Open an incident and click **Run analysis**. Tests and CI still run with Ollama off (`docs/incident-analysis.md`).
-
 Compose starts healthy platform services plus **intentional demo faults** (`demo-unhealthy` always returns HTTP 500, `demo-restarting` crash-loops). Open incidents and Unhealthy tiles are the product detecting those targets, not a broken stack. Details: `docs/DEMO.md`.
+
+## Local LLM (Ollama)
+
+Compose **completes Ollama setup for you**. `devops-ollama` starts, `ollama-init` **pulls and warms** `${OLLAMA_MODEL:-llama3.2}` (~2 GB), and the API does not come up until that finishes. First `docker compose up --build` can sit on the pull for a few minutes; later starts reuse the volume.
+
+Default is **llama3.2 (3B)** so analysis finishes on Docker Desktop **CPU** (typical on Windows — the RX 7800 XT is not used by the Compose Ollama container). Open an incident and click **Run analysis** once; leave the tab open. The worker never calls the model. Tests and CI keep Ollama off (`docs/incident-analysis.md`).
+
+Sizes below are Ollama’s usual 4-bit (Q4) tags. Memory is weights plus overhead at a short context — longer prompts need more. GPU VRAM or unified RAM both count; Docker Desktop on Windows Home is usually **CPU-only**, so pick the RAM column and expect slower tokens/s.
+
+| `OLLAMA_MODEL` | Params | Quality for this JSON analysis | Download | RAM or VRAM to run | This stack |
+|---|---|---|---|---|---|
+| `llama3.2:1b` | 1B | Weak — often malformed JSON | ~1.3 GB | ~3 GB; any CPU | Too small; not recommended |
+| `llama3.2` | 3B | Adequate hypothesis from evidence | ~2 GB | ~4–6 GB; CPU is fine | **Default** |
+| `llama3.1` | 8B | Stronger summaries and structure | ~4.9 GB | ~8–12 GB; GPU if you have it | Better machines; raise timeout on CPU |
+| `llama3.1:70b` / `llama3.3:70b` | 70B | Best of this family | ~40–43 GB | ~48 GB+ VRAM or ~64 GB RAM | Workstation/server; not Compose-on-CPU |
+
+Set the tag in `.env` and recreate:
+
+```text
+OLLAMA_MODEL=llama3.1
+OLLAMA_TIMEOUT=00:10:00
+```
+
+`docker compose up --build`. Dashboard `/api` already waits 10 minutes. `OLLAMA_ENABLED=false` runs the rest of the stack with analysis stored as unavailable.
+
+Do not open `http://ollama:11434` in Chrome — that hostname only exists on the Docker network. Host check: `http://127.0.0.1:11434`.
 
 ## Screenshots
 
