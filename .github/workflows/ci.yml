@@ -1,0 +1,42 @@
+name: ci
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Restore
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+      - name: Test
+        run: dotnet test --no-build --configuration Release --verbosity normal
+      - name: Frontend
+        working-directory: frontend/dashboard
+        run: |
+          npm install
+          npm test
+          npm run build
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build images
+        run: |
+          docker build -f docker/DevOps.Api.Dockerfile -t devops-api:ci .
+          docker build -f docker/DevOps.Worker.Dockerfile -t devops-worker:ci .
+          docker build -f docker/Dashboard.Dockerfile -t devops-dashboard:ci .
+          docker build -f docker/Demo.ChaosApi.Dockerfile -t demo-chaos:ci .

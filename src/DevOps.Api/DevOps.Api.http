@@ -1,0 +1,58 @@
+@api=http://localhost:8080
+
+GET {{api}}/health
+
+###
+GET {{api}}/api/services
+
+###
+POST {{api}}/api/services
+Content-Type: application/json
+
+{
+  "name": "payments-api",
+  "description": "Demo payments service",
+  "baseUrl": "http://payments-api:8080",
+  "healthEndpoint": "/health",
+  "monitoringEnabled": true
+}
+
+###
+GET {{api}}/api/incidents
+
+###
+POST {{api}}/api/incidents/{incidentId}/analyze
+
+###
+GET {{api}}/api/incidents/{incidentId}/analysis
+
+###
+GET {{api}}/api/incidents/{incidentId}/similar
+
+###
+POST {{api}}/api/incidents/{incidentId}/resolve
+Content-Type: application/json
+
+{
+  "resolution": "DB_HOST configuration corrected.",
+  "rootCause": "Incorrect database hostname following deployment.",
+  "actionsTaken": "Restored environment variables from the previous release."
+}
+
+###
+POST {{api}}/api/deployments
+Content-Type: application/json
+
+{
+  "serviceId": "00000000-0000-0000-0000-000000000000",
+  "commitSha": "abcdefabcdefabcdefabcdefabcdefabcdefabcd",
+  "branch": "main",
+  "buildStatus": "Succeeded",
+  "testStatus": "Succeeded",
+  "deploymentStatus": "Succeeded",
+  "startedAt": "2026-09-16T21:00:00Z",
+  "completedAt": "2026-09-16T21:06:00Z"
+}
+
+###
+GET {{api}}/api/services

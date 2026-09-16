@@ -1,0 +1,6 @@
+**/bin
+**/obj
+.git
+TestResults
+.vs
+node_modules
