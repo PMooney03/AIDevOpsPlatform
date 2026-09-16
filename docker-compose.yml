@@ -24,9 +24,10 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-devops_platform};Username=${POSTGRES_USER:-devops};Password=${POSTGRES_PASSWORD:-dev_only_change_me}
-      Ollama__Enabled: ${OLLAMA_ENABLED:-false}
-      Ollama__BaseUrl: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
-      Ollama__Model: ${OLLAMA_MODEL:-llama3.2}
+      Ollama__Enabled: ${OLLAMA_ENABLED:-true}
+      Ollama__BaseUrl: ${OLLAMA_BASE_URL:-http://ollama:11434}
+      Ollama__Model: ${OLLAMA_MODEL:-llama3.1}
+      Ollama__Timeout: ${OLLAMA_TIMEOUT:-00:04:00}
       Auth__Enabled: ${AUTH_ENABLED:-true}
       Auth__SigningKey: ${AUTH_SIGNING_KEY:-dev-only-change-me-use-a-32-char-key!}
       Docker__Enabled: "true"
@@ -46,6 +47,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      ollama-init:
+        condition: service_completed_successfully
 
   devops-worker:
     build:
@@ -74,6 +77,32 @@ services:
         condition: service_healthy
       devops-api:
         condition: service_started
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: devops-ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list || exit 1"]
+      interval: 5s
+      timeout: 10s
+      retries: 24
+      start_period: 10s
+
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: devops-ollama-init
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.1}
+    entrypoint: ["sh", "-c", "ollama pull $$OLLAMA_MODEL"]
+    restart: "no"
 
   demo-unhealthy:
     image: nginx:alpine
@@ -144,3 +173,4 @@ volumes:
   postgres_data:
   prometheus_data:
   grafana_data:
+  ollama_data:

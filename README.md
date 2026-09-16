@@ -1,6 +1,6 @@
 # AI DevOps Operations Platform
 
-ASP.NET Core operations platform that monitors services and containers, records incidents, optionally explains them with a local LLM, and requires a human to approve any remediation.
+ASP.NET Core operations platform that monitors services and containers, records incidents, explains them with a local LLM (Ollama), and requires a human to approve any remediation.
 
 ## Why I built it
 
@@ -18,7 +18,7 @@ flowchart LR
   dash --> api
   worker --> pg[(PostgreSQL)]
   api --> pg
-  api -.-> ollama[Ollama]
+  api --> ollama[Ollama]
   worker --> docker[Docker]
   prom[Prometheus] --> api
   prom --> worker
@@ -32,7 +32,7 @@ Details: `docs/ARCHITECTURE.md`.
 - Service registry and HTTP health monitoring with configurable thresholds
 - Docker inspect, restart-threshold / stop / unhealthy incidents
 - Incident CRUD, resolve, similar-incident ranking
-- Optional Ollama analysis with validated JSON and offline fallback
+- Ollama incident analysis (validated JSON, fallback if the model is down)
 - Deployment records and time-window correlation
 - Human-approved remediations (health check, refresh, logs, restart)
 - JWT roles: Viewer, Operator, Administrator
@@ -42,7 +42,7 @@ Details: `docs/ARCHITECTURE.md`.
 
 ## Technology stack
 
-.NET 10, C# 14, EF Core, PostgreSQL, Docker Compose, xUnit, OpenTelemetry/Prometheus, Grafana, React 19 + TypeScript, Ollama (optional).
+.NET 10, C# 14, EF Core, PostgreSQL, Docker Compose, xUnit, OpenTelemetry/Prometheus, Grafana, React 19 + TypeScript, Ollama.
 
 ## Running locally
 
@@ -61,7 +61,7 @@ docker compose up --build
 
 Host API against Compose Postgres: `dotnet run --project src/DevOps.Api` (Development enables JWT; same demo users).
 
-Ollama stays off until `OLLAMA_ENABLED=true` and a model is available on the host (`docs/incident-analysis.md`).
+Compose starts **Ollama** and pulls `llama3.1` (8B, ~5 GB) on first run. The worker never calls the model. Open an incident and click **Run analysis**. Tests and CI still run with Ollama off (`docs/incident-analysis.md`).
 
 Compose starts healthy platform services plus **intentional demo faults** (`demo-unhealthy` always returns HTTP 500, `demo-restarting` crash-loops). Open incidents and Unhealthy tiles are the product detecting those targets, not a broken stack. Details: `docs/DEMO.md`.
 
@@ -85,7 +85,7 @@ Filterable incident list. Open rows are produced by the worker; **Database conne
 
 ![payments-api incident](Images/PaymentsApiOverviewPage.png)
 
-Evidence is collected independently of the LLM (status, HTTP 500, consecutive failures, container inspect, latest deployment SHA). **AI analysis is unavailable** because Ollama is off by default; **Run analysis** still records that fallback instead of inventing a cause. Remediation buttons only *propose* actions — an Operator/Admin must approve before anything runs. Similar incidents can be empty when Jaccard similarity stays below the threshold.
+Evidence is collected independently of the LLM (status, HTTP 500, consecutive failures, container inspect, latest deployment SHA). **AI analysis is unavailable** in this screenshot because it was taken before Compose included Ollama. After `docker compose up`, **Run analysis** calls `llama3.1` and stores a hypothesis (not a confirmed fact). Remediation buttons only *propose* actions — an Operator/Admin must approve before anything runs.
 
 ### Service: payments-api
 

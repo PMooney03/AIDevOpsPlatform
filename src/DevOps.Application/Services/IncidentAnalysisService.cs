@@ -114,15 +114,13 @@ public sealed class IncidentAnalysisService(
         return ToResponse(analysis);
     }
 
-    public async Task<IncidentAnalysisResponse> GetLatestAsync(Guid incidentId, CancellationToken cancellationToken)
+    public async Task<IncidentAnalysisResponse?> GetLatestAsync(Guid incidentId, CancellationToken cancellationToken)
     {
-        var incident = await incidents.GetByIdAsync(incidentId, cancellationToken)
+        _ = await incidents.GetByIdAsync(incidentId, cancellationToken)
             ?? throw new NotFoundException($"Incident '{incidentId}' was not found.");
 
-        var latest = await analyses.GetLatestForIncidentAsync(incidentId, cancellationToken)
-            ?? throw new NotFoundException($"No analysis has been stored for incident '{incidentId}'.");
-
-        return ToResponse(latest);
+        var latest = await analyses.GetLatestForIncidentAsync(incidentId, cancellationToken);
+        return latest is null ? null : ToResponse(latest);
     }
 
     public async Task<IncidentResponse> ResolveAsync(Guid incidentId, ResolveIncidentRequest request, CancellationToken cancellationToken)

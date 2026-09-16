@@ -310,11 +310,8 @@ function IncidentDetailPage() {
     setSimilar(await api.similar(id));
     setDeployments(await api.deployments(current.serviceId));
     setRemediations(await api.remediations(id));
-    try {
-      setAnalysis(await api.analysis(id));
-    } catch {
-      setAnalysis(null);
-    }
+    const latest = await api.analysis(id);
+    setAnalysis(latest ?? null);
   }
 
   usePolling(refresh, [id]);

@@ -1,6 +1,6 @@
 # Architecture
 
-The platform is a .NET 10 operations system: a worker polls health and Docker, an API stores incidents and analysis, PostgreSQL holds state, Prometheus/Grafana show metrics, Ollama optionally explains incidents, and a React dashboard is the operator UI.
+The platform is a .NET 10 operations system: a worker polls health and Docker, an API stores incidents and analysis, PostgreSQL holds state, Prometheus/Grafana show metrics, Ollama explains incidents from stored evidence, and a React dashboard is the operator UI.
 
 ```mermaid
 flowchart TD
@@ -8,7 +8,7 @@ flowchart TD
   worker --> pg[(PostgreSQL)]
   worker --> docker[Docker Engine]
   api[DevOps.Api] --> pg
-  api --> ollama[Ollama optional]
+  api --> ollama[Ollama]
   dash[React dashboard] --> api
   prom[Prometheus] --> api
   prom --> worker

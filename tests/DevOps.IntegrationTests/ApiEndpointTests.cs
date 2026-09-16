@@ -201,7 +201,10 @@ public class ApiEndpointTests : IAsyncLifetime
             IncidentSeverity.High), JsonOptions);
         var incident = await incidentResponse.Content.ReadFromJsonAsync<IncidentResponse>(JsonOptions);
 
-        var analyze = await _client.PostAsync($"/api/incidents/{incident!.Id}/analyze", null);
+        var beforeAnalyze = await _client.GetAsync($"/api/incidents/{incident!.Id}/analysis");
+        Assert.Equal(HttpStatusCode.NoContent, beforeAnalyze.StatusCode);
+
+        var analyze = await _client.PostAsync($"/api/incidents/{incident.Id}/analyze", null);
         Assert.Equal(HttpStatusCode.OK, analyze.StatusCode);
         var analysis = await analyze.Content.ReadFromJsonAsync<IncidentAnalysisResponse>(JsonOptions);
         Assert.False(analysis!.Succeeded);

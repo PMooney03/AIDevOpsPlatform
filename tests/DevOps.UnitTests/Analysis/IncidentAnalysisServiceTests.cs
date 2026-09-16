@@ -23,6 +23,16 @@ public class IncidentAnalysisServiceTests
     }
 
     [Fact]
+    public async Task Get_latest_returns_null_before_analysis_is_stored()
+    {
+        var (service, incidentId, _) = await CreateSutAsync();
+
+        var latest = await service.GetLatestAsync(incidentId, CancellationToken.None);
+
+        Assert.Null(latest);
+    }
+
+    [Fact]
     public async Task Resolve_requires_summary_and_marks_resolved()
     {
         var (service, incidentId, _) = await CreateSutAsync();

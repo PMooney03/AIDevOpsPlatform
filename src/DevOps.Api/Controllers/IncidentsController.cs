@@ -72,13 +72,15 @@ public sealed class IncidentsController(IncidentService incidents) : ControllerB
 
     [HttpGet("{id:guid}/analysis")]
     [ProducesResponseType(typeof(IncidentAnalysisResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IncidentAnalysisResponse>> GetAnalysis(
         Guid id,
         [FromServices] IncidentAnalysisService analysis,
         CancellationToken cancellationToken)
     {
-        return Ok(await analysis.GetLatestAsync(id, cancellationToken));
+        var latest = await analysis.GetLatestAsync(id, cancellationToken);
+        return latest is null ? NoContent() : Ok(latest);
     }
 
     [HttpPost("{id:guid}/resolve")]

@@ -203,7 +203,7 @@ export const api = {
   incidents: (query = "") => request<IncidentItem[]>(`/api/incidents${query}`),
   incident: (id: string) => request<IncidentItem>(`/api/incidents/${id}`),
   analyze: (id: string) => request<AnalysisResponse>(`/api/incidents/${id}/analyze`, { method: "POST" }),
-  analysis: (id: string) => request<AnalysisResponse>(`/api/incidents/${id}/analysis`),
+  analysis: (id: string) => request<AnalysisResponse | undefined>(`/api/incidents/${id}/analysis`),
   similar: (id: string) => request<SimilarIncident[]>(`/api/incidents/${id}/similar`),
   resolve: (id: string, body: { resolution: string; rootCause?: string; actionsTaken?: string }) =>
     request<IncidentItem>(`/api/incidents/${id}/resolve`, { method: "POST", body: JSON.stringify(body) }),
